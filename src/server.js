@@ -151,11 +151,24 @@ app.use(badRequestErrorHandler);
 app.use(forbiddenErrorHandler);
 app.use(catchAllErrorHandler);
 
-mongoose.connect(process.env.MONGO_CONNECTION, { useNewUrlParser: true }).then(() => {
-  console.log("Connected to mongo");
+console.table(listEndpoints(app));
+
+mongoose
+.connect(process.env.MONGO_CONNECTION, { 
+  useNewUrlParser: true 
+})
+.then(
   server.listen(port, () => {
-    console.table(listEndpoints(app));
-    console.log("Server listening on port " + port);
-  });
-});
+    console.log("Server running on port", port)
+  })
+)
+.catch(err => console.log("Mongo connection error ", err))
+
+// .then(
+//   () => {
+//   console.log("Connected to mongo");
+//   server.listen(port, () => {
+//     console.log("Server listening on port " + port);
+//   });
+// });
 
