@@ -1,30 +1,53 @@
-import express from "express";
-import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
 import cors from "cors";
+import express from "express";
 import listEndpoints from "express-list-endpoints";
 import { createServer } from "http";
+import mongoose from "mongoose";
 import { Server } from "socket.io";
+import { badRequestErrorHandler, catchAllErrorHandler, forbiddenErrorHandler, notFoundErrorHandler, unAuthorizedHandler } from "./errorHandlers.js";
+import RoomModel from "./models/Room/index.js";
+import chatRouter from "./services/Chat.js";
 import usersRouter from "./services/users.js";
-import { unAuthorizedHandler, notFoundErrorHandler, badRequestErrorHandler, forbiddenErrorHandler, catchAllErrorHandler } from "./errorHandlers.js";
-import cookieParser from "cookie-parser";
-import { verifyToken } from "./auth/tools.js"
-import UserModel from "./models/users/index.js";
-import RoomModel from "./models/Room/index.js"
-import chatRouter from "./services/Chat.js"
 
 const app = express();
-app.use(cors());
+const port = process.env.PORT;
+
+// **************** MIDDLEWARES ****************
 app.use(express.json());
 app.use(cookieParser());
+
+// ******** loggerMiddleware ************
+const loggerMiddleware = (req, res, next) => {
+  console.log(`Request method: ${req.method} ${req.url} -- ${new Date()}`)
+  next()
+}
+app.use(loggerMiddleware)
+
+// ******** cors ************
+const whitelist = [process.env.FRONTEND_LOCAL_URL, process.env.FRONTEND_REMOTE_URL]
+const corsOptions = {
+  origin: function (origin, next) {
+    console.log("ORIGIN ", origin)
+    if (whitelist.indexOf(origin) !== -1) {
+      // origin allowed
+      next(null, true)
+    } else {
+      // origin not allowed
+      next(new Error("CORS TROUBLES!!!!!"))
+    }
+  }, credentials: true
+}
+app.use(cors(corsOptions))
+
+// ******** ROUTES ************
+app.use("/users", usersRouter);
+app.use('/', chatRouter)
 
 const server = createServer(app);
 const io = new Server(server, { allowEIO3: true });
 
-app.use("/users", usersRouter);
-app.use('/', chatRouter)
-
 export const sockets = {}
-
 
 io.on('connection', (socket) => {
   socket.on('did-connect', async (userId) => {
@@ -121,13 +144,12 @@ io.on('connection', (socket) => {
 // })
 
 
+// ******** ERROR MIDDLEWARES ************
 app.use(unAuthorizedHandler);
 app.use(notFoundErrorHandler);
 app.use(badRequestErrorHandler);
 app.use(forbiddenErrorHandler);
 app.use(catchAllErrorHandler);
-
-const port = process.env.PORT;
 
 mongoose.connect(process.env.MONGO_CONNECTION, { useNewUrlParser: true }).then(() => {
   console.log("Connected to mongo");
