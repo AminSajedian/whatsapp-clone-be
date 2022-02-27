@@ -98,7 +98,7 @@ usersRouter.post("/me/setUsername", JWTAuthMiddleware, async (req, res, next) =>
     const user = await UserModel.findById(req.user._id);
     user.username = req.body.username;
     await user.save();
-    console.log(user);
+    // console.log(user);
     res.send(user);
   } catch (error) {
     console.log(error);
@@ -144,8 +144,10 @@ usersRouter.post("/me/uploadAvatar", upload, JWTAuthMiddleware, async (req, res,
 // const chatRooms = await RoomModel.find({ members: req.user._id }, { select: [ NO CHAT HISTORY ] })
 
 usersRouter.get("/me/chats", JWTAuthMiddleware, async (req, res) => {
-  console.log('req.user._id:', req.user._id)
   const rooms = await RoomModel.find({ members: req.user._id }).populate("members")
+  // console.log('--------------------------')
+  // console.log('rooms:', rooms)
+  // console.log('--------------------------')
   res.status(200).send(rooms)
 })
 // console.log('rooms:', rooms)

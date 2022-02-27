@@ -2,7 +2,7 @@ import express from "express"
 import RoomModel from "../models/Room/index.js"
 import UserModel from "../models/users/index.js"
 import { JWTAuthMiddleware } from "../auth/jwtAuth.js";
-import { sockets } from "../server.js";
+// import { sockets } from "../server.js";
 
 const chatRouter = express.Router()
 
@@ -29,9 +29,7 @@ chatRouter.get("/room/history/:id", async (req, res) => {
 
 chatRouter.get("/room/user/:id", JWTAuthMiddleware, async (req, res) => {
 
-
     const room = await RoomModel.findOne({ $and: [{ members: req.params.id }, { members: req.user._id }] }).populate("members")
-
 
     if (room !== null) {
         res.status(200).send(room)
@@ -43,14 +41,14 @@ chatRouter.get("/room/user/:id", JWTAuthMiddleware, async (req, res) => {
         await _room.save()
         const _room_ = await RoomModel.findOne({ $and: [{ members: req.params.id }, { members: req.user._id }] }).populate("members")
         
-        console.log('--------------------')
-        console.log('sockets:', sockets)
-        console.log('req.params.id:', req.params.id)
-        console.log('req.user._id:', req.user._id)
+        // console.log('--------------------')
+        // console.log('sockets:', sockets)
+        // console.log('req.params.id:', req.params.id)
+        // console.log('req.user._id:', req.user._id)
+        // console.log('--------------------')
         
-        sockets[req.params.id].join(_room_._id.toString())
-        sockets[req.user._id].join(_room_._id.toString())
-        console.log('--------------------')
+        // sockets[req.params.id].join(_room_._id.toString())
+        // sockets[req.user._id].join(_room_._id.toString())
 
         res.status(200).send(_room_)
 
